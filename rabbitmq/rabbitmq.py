@@ -138,7 +138,7 @@ class RabbitMQ(Plugin):
             filters = [filters]
         return_code = 0
         data = []
-        self.log.debug("Filtering out by " + str(filters))
+        self.log.debug("Filtering out by {}".format(str(filters)))
         if not filters:
             filters = [{}]
         for queue in queuesData:
@@ -170,12 +170,6 @@ class RabbitMQ(Plugin):
         :param dict_args: dicts list
         '''
         result = {}
-        '''
-        # Too slow
-        for d in dict_args:
-            for k in d:
-                result[k] = d[k]
-        '''
         for d in dict_args:
             result.update(d)
         return result
