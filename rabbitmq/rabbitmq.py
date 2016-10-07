@@ -16,12 +16,14 @@ filters =
 """
 
 import socket
+import parser
 import requests
 try:
     import json
 except:
     import simplejson as json
 from mamonsu.lib.plugin import Plugin
+
 
 class RabbitMQ(Plugin):
     Interval = 20
@@ -34,10 +36,10 @@ class RabbitMQ(Plugin):
         'protocol': 'http',
         'username': str(None),
         'password': str(None),
-        'filters': str(None)
+        'filters': str(None),
     }
 
-    overview_metrics = [ 'rabbitmq_version', ]
+    overview_metrics = [ 'rabbitmq_version' ]
     node_discovery = False
     node_metrics = ['partitions',
                     'disk_free',
@@ -58,13 +60,11 @@ class RabbitMQ(Plugin):
         for item in data:
             zbx.send(item, zbx.json(data[item]))
 
-
-
     def _call_api(self, path):
-        '''
+        """
         Call the REST API and convert the results into JSON.
         :param path: str
-        '''
+        """
         url = '{0}://{1}:{2}/api/{3}'.format(self.plugin_config('protocol'), self.plugin_config('host'), self.plugin_config('port'), path)
         self.log.debug('Issuing RabbitMQ API call to get data on ' + str(url))
         try:
@@ -75,11 +75,11 @@ class RabbitMQ(Plugin):
             self.log.error('RabbitMQ API call error: {0}'.format(e))
 
     def _node_status(self, nodename):
-        '''
+        """
         Get node status metrics
         :param nodename: str
         :return: array
-        '''
+        """
         data = {}
         nodes = []
         nodename = nodename.split('.')[0]
@@ -94,7 +94,7 @@ class RabbitMQ(Plugin):
 
         overview = self._call_api('overview')
         if nodename in overview['node']:
-            data['rabbitmq[server,message_stats_publish]'] = overview.get('message_stats', {}).get('publish',0)
+            data['rabbitmq[server,message_stats_publish]'] = overview.get('message_stats', {}).get('publish', 0)
             data['rabbitmq[server,message_stats_deliver_get]'] = overview.get('message_stats', {}).get('deliver_get', 0)
             data['rabbitmq[server,rabbitmq_version]'] = overview.get('rabbitmq_version', 'None')
 
@@ -102,11 +102,11 @@ class RabbitMQ(Plugin):
         return data
 
     def _queues_status(self, nodename):
-        '''
+        """
         Get queues metrics
         :param nodename: str
         :return: array
-        '''
+        """
         data = {}
         queues = []
         nodename = nodename.split('.')[0]
@@ -116,7 +116,6 @@ class RabbitMQ(Plugin):
                 queues.append({'{#VHOSTNAME}': queueData['vhost'], '{#QUEUENAME}': queueData['name']})
                 for item in self.queue_metrics:
                     data['rabbitmq.queues[{0},queue_{1},{2}]'.format(queueData['vhost'], item, queueData['name'])] = queueData.get(item)
-                ##  This is a non standard bit of information added after the standard items
                 for item in ['deliver_get', 'publish']:
                     data['rabbitmq.queues[{0},queue_message_stats_{1},{2}]'.format(queueData['vhost'], item, queueData['name'])] = queueData.get('message_stats', {}).get(item, 0)
         if self.queue_discovery:
@@ -125,8 +124,8 @@ class RabbitMQ(Plugin):
         self.log.debug('Got queues data: {0}'.format(data))
         return data
 
-    def _filter_queues(self, queuesData, filters=None):
-        '''Return only items matching filters'''
+    def _filter_queues(self, queues_data, filters=None):
+        """Return only items matching filters"""
         if filters:
             try:
                 filters = json.loads(filters)
@@ -136,12 +135,12 @@ class RabbitMQ(Plugin):
             filters = [{}]
         if not isinstance(filters, (list, tuple)):
             filters = [filters]
-        return_code = 0
+
         data = []
         self.log.debug("Filtering out by {}".format(str(filters)))
         if not filters:
             filters = [{}]
-        for queue in queuesData:
+        for queue in queues_data:
             success = False
             for _filter in filters:
                 check = [(x, y) for x, y in queue.items() if x in _filter]
@@ -154,21 +153,20 @@ class RabbitMQ(Plugin):
         self.log.debug('Got FILTERED queues data: {0}'.format(len(data)))
         return data
 
-
     def _check_aliveness(self):
-        '''Check the aliveness status of a given vhost.'''
+        """Check the aliveness status of a given vhost."""
         data = {}
         data['rabbitmq[check_aliveness]'] = self._call_api('aliveness-test/%2f')['status']
         self.log.debug('Aliveness test: {0}'.format(data['rabbitmq[check_aliveness]']))
         return data
 
-
+    @staticmethod
     def merge_dicts(self, *dict_args):
-        '''
+        """
         Given any number of dicts, shallow copy and merge into a new dict,
         precedence goes to key value pairs in latter dicts.
         :param dict_args: dicts list
-        '''
+        """
         result = {}
         for d in dict_args:
             result.update(d)
