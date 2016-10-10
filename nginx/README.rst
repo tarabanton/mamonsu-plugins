@@ -4,7 +4,8 @@ When running on Debian-based OSes, by-default mamonsu have no access to nginx lo
 Either change settings on nginx, or add mamonsu user to adm group.
 
 Default configuration
-```ini
+
+``` ini
 [nginx]
 enabled = False
 ;URL to nginx stat (http_stub_status_module)
