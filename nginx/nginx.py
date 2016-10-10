@@ -10,6 +10,7 @@ file = /var/log/nginx/access.log
 ;Optional Basic Auth
 username =
 password =
+http_codes = {200, 301, 302, 304, 403, 404, 499, 500, 502, 503, 520}
 """
 
 import re
