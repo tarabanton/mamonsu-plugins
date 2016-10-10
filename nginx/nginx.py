@@ -17,7 +17,6 @@ import datetime
 import time
 import os.path
 import requests
-
 try:
     import urllib.request as urllib2
 except ImportError:
@@ -41,8 +40,10 @@ class Nginx(Plugin):
         ('keepalive_connections', 'Keep-alive connections', '00C800', 7, None),
         ('accepted_connections', 'Accepted connections', 'C80000', 7, None),
         ('handled_connections', 'Handled connections', '00C800', 7, None),
-        ('accepted_connections_per_min','Accepted connections\min','C80000', 7, '(last("nginx[accepted_connections]",0)-last("nginx[accepted_connections]",0,60))'),
-        ('handled_connections_per_min','Handled connections\min','00C800', 7, '(last("nginx[handled_connections]",0)-last("nginx[handled_connections]",0,60))'),
+        ('accepted_connections_per_min', 'Accepted connections\min', 'C80000', 7,
+         '(last("nginx[accepted_connections]",0)-last("nginx[accepted_connections]",0,60))'),
+        ('handled_connections_per_min', 'Handled connections\min', '00C800', 7,
+         '(last("nginx[handled_connections]",0)-last("nginx[handled_connections]",0,60))'),
         ('handled_requests', 'Handled requests', 'CC00CC', 7, None),
         ('header_reading', 'Establishing connection', None, 7, None),
         ('body_reading', 'Slab: Kernel used memory (inode cache)', None, 7, None),
@@ -63,8 +64,11 @@ class Nginx(Plugin):
     Graphs = [
         ('Nginx connections', ('active_connections', 'keepalive_connections')),
         ('Nginx Connections\min', ('accepted_connections_per_min', 'handled_connections_per_min')),
-        ('Nginx Requests\sec', ('rps')),
-        ('Nginx Response codes per minute', ('200', '301', '302', '304', '403', '404', '499', '500', '502', '503', '520'))
+        ('Nginx Requests\sec', 'rps'),
+        ('Nginx Response codes per minute', ('200', '301', '302', '304', '403',
+                                             '404', '499', '500', '502', '503',
+                                             '520')
+         )
     ]
 
     def run(self, zbx):
@@ -180,10 +184,10 @@ class Nginx(Plugin):
         result_items = []
         for source_item in self.Items:
             result_items.append({
-                'name': '{0}'.format(item[1]),
-                'key': 'nginx[{0}]'.format(item[0]),
-                'type': item[3],
-                'param': '{0}'.format(item[4])
+                'name': '{0}'.format(source_item[1]),
+                'key': 'nginx[{0}]'.format(source_item[0]),
+                'type': source_item[3],
+                'param': '{0}'.format(source_item[4])
             })
         return template.item(result_items)
 
@@ -194,7 +198,7 @@ class Nginx(Plugin):
             for metric in source_graph[1]:
                 for source_item in self.Items:
                     if source_item[0] == metric:
-                        items.append({'key': 'nginx[{0}]'.format(source_item[0]),'color': source_item[2]})
+                        items.append({'key': 'nginx[{0}]'.format(source_item[0]), 'color': source_item[2]})
             result_graphs.append(
                 {'name': source_graph[0], 'height': 400, 'type': 1, 'items': items}
             )
