@@ -36,26 +36,35 @@ class Nginx(Plugin):
     }
 
     Items = [
-        # zbx_key, name, color
-        ('active_connections', 'Active connections ', 'C80000'),
-        ('keepalive_connections', 'Keep-alive connections', '00C800'),
-        ('accepted_connections', 'Accepted connections', 'C80000'),
-        ('handled_connections', 'Handled connections', '00C800'),
-        ('handled_requests', 'Handled requests', 'CC00CC'),
-        ('header_reading', 'Establishing connection', None),
-        ('body_reading', 'Slab: Kernel used memory (inode cache)', None),
-        ('rps', 'Requests\sec', '00C800'),
-        ('200', '200 - OK', 'C80000'),
-        ('301', '301 - Moved Permanently', '00C800'),
-        ('302', '302 - Moved Temporarily', '0000C8'),
-        ('304', '304 - Not Modified', 'C800C8'),
-        ('403', '403 - Forbidden', '00C8C8'),
-        ('404', '404 - Not Found', 'C8C800'),
-        ('499', '499 - Connection Reset', 'C8C8C8'),
-        ('500', '500 - Internal Error', '960000'),
-        ('502', '502 - Bad Gateway', '66FF66'),
-        ('503', '503 - Service unavailable', '009600'),
-        ('520', '520 - Custom code', 'BB2A02')
+        # zbx_key, name, color, type, params
+        ('active_connections', 'Active connections ', 'C80000', 7, None),
+        ('keepalive_connections', 'Keep-alive connections', '00C800', 7, None),
+        ('accepted_connections', 'Accepted connections', 'C80000', 7, None),
+        ('handled_connections', 'Handled connections', '00C800', 7, None),
+        ('accepted_connections_per_min','Accepted connections\min','C80000', 7, '(last("nginx[accepted_connections]",0)-last("nginx[accepted_connections]",0,60))'),
+        ('handled_connections_per_min','Handled connections\min','00C800', 7, '(last("nginx[handled_connections]",0)-last("nginx[handled_connections]",0,60))'),
+        ('handled_requests', 'Handled requests', 'CC00CC', 7, None),
+        ('header_reading', 'Establishing connection', None, 7, None),
+        ('body_reading', 'Slab: Kernel used memory (inode cache)', None, 7, None),
+        ('rps', 'Requests\sec', '00C800', 7, None),
+        ('200', '200 - OK', 'C80000', 7, None),
+        ('301', '301 - Moved Permanently', '00C800', 7, None),
+        ('302', '302 - Moved Temporarily', '0000C8', 7, None),
+        ('304', '304 - Not Modified', 'C800C8', 7, None),
+        ('403', '403 - Forbidden', '00C8C8', 7, None),
+        ('404', '404 - Not Found', 'C8C800', 7, None),
+        ('499', '499 - Connection Reset', 'C8C8C8', 7, None),
+        ('500', '500 - Internal Error', '960000', 7, None),
+        ('502', '502 - Bad Gateway', '66FF66', 7, None),
+        ('503', '503 - Service unavailable', '009600', 7, None),
+        ('520', '520 - Custom code', 'BB2A02', 7, None)
+    ]
+
+    Graphs = [
+        ('Nginx connections', ('active_connections', 'keepalive_connections')),
+        ('Nginx Connections\min', ('accepted_connections_per_min', 'handled_connections_per_min')),
+        ('Nginx Requests\sec', ('rps')),
+        ('Nginx Response codes per minute', ('200', '301', '302', '304', '403', '404', '499', '500', '502', '503', '520'))
     ]
 
     def run(self, zbx):
@@ -168,26 +177,25 @@ class Nginx(Plugin):
             self.log.error('Getting access log info error: {0}'.format(e))
 
     def items(self, template):
-        result = ''
-        for item in self.Items:
-            result += template.item({
+        result_items = []
+        for source_item in self.Items:
+            result_items.append({
                 'name': '{0}'.format(item[1]),
                 'key': 'nginx[{0}]'.format(item[0]),
+                'type': item[3],
+                'param': '{0}'.format(item[4])
             })
-        return result
+        return template.item(result_items)
 
-    #TODO: Graphs graphs graphs
     def graphs(self, template):
-        items = []
-        # Nginx connections
-        for metric in ['active_connections', 'keepalive_connections']:
-            for t in self.Items:
-                if t[0] == metric:
-                    items.append({
-                        'key': 'nginx[{0}]'.format(t[0]),
-                        'color': t[2]
-                    })
-        # graph = {
-        #     'name': 'Memory overview', 'height': 400,
-        #     'type': 1, 'items': items}
-        return template.graph(graph)
+        result_graphs = []
+        for source_graph in self.Graphs:
+            items = []
+            for metric in source_graph[1]:
+                for source_item in self.Items:
+                    if source_item[0] == metric:
+                        items.append({'key': 'nginx[{0}]'.format(source_item[0]),'color': source_item[2]})
+            result_graphs.append(
+                {'name': source_graph[0], 'height': 400, 'type': 1, 'items': items}
+            )
+        return template.graph(result_graphs)
