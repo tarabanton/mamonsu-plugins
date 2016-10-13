@@ -77,11 +77,7 @@ class Nginx(Plugin):
         url = '{0}'.format(self.plugin_config('url'))
         self.log.debug('Getting stub status. URL = ' + str(url))
         try:
-            if self.plugin_config('username') and self.plugin_config('password'):
-                self.log.debug('We have auth on stub status')
-                basic_status = requests.get(url, auth=(self.plugin_config('username'), self.plugin_config('password')))
-            else:
-                basic_status = requests.get(url).text
+            basic_status = requests.get(url, auth=(self.plugin_config('username'), self.plugin_config('password')))
             '''
             STUB STATUS nginx module output
             Active connections: 1
@@ -92,27 +88,28 @@ class Nginx(Plugin):
             self.log.debug('Got basic info')
             self.log.debug(basic_status)
             status = basic_status.split('\n')
-            # Active connections
-            zbx.send('nginx[active_connections]',
-                     (re.match(r'(.*):\s(\d*)', status[0], re.M | re.I).group(2)))
-            # Accepts
-            zbx.send('nginx[accepted_connections]',
-                     (re.match(r'\s(\d*)\s(\d*)\s(\d*)', status[2], re.M | re.I).group(1)))
-            # Handled
-            zbx.send('nginx[handled_connections]',
-                     (re.match(r'\s(\d*)\s(\d*)\s(\d*)', status[2], re.M | re.I).group(2)))
-            # Requests
-            zbx.send('nginx[handled_requests]',
-                     (re.match(r'\s(\d*)\s(\d*)\s(\d*)', status[2], re.M | re.I).group(3)))
-            # Reading
-            zbx.send('nginx[header_reading]',
-                     (re.match(r'(.*):\s(\d*)(.*):\s(\d*)(.*):\s(\d*)', status[3], re.M | re.I).group(2)))
-            # Writing
-            zbx.send('nginx[body_reading]',
-                     (re.match(r'(.*):\s(\d*)(.*):\s(\d*)(.*):\s(\d*)', status[3], re.M | re.I).group(4)))
-            # Waiting
-            zbx.send('nginx[keepalive_connections]',
-                     (re.match(r'(.*):\s(\d*)(.*):\s(\d*)(.*):\s(\d*)', status[3], re.M | re.I).group(6)))
+            if len(status)>1:
+                # Active connections
+                zbx.send('nginx[active_connections]',
+                         (re.match(r'(.*):\s(\d*)', status[0], re.M | re.I).group(2)))
+                # Accepts
+                zbx.send('nginx[accepted_connections]',
+                         (re.match(r'\s(\d*)\s(\d*)\s(\d*)', status[2], re.M | re.I).group(1)))
+                # Handled
+                zbx.send('nginx[handled_connections]',
+                         (re.match(r'\s(\d*)\s(\d*)\s(\d*)', status[2], re.M | re.I).group(2)))
+                # Requests
+                zbx.send('nginx[handled_requests]',
+                         (re.match(r'\s(\d*)\s(\d*)\s(\d*)', status[2], re.M | re.I).group(3)))
+                # Reading
+                zbx.send('nginx[header_reading]',
+                         (re.match(r'(.*):\s(\d*)(.*):\s(\d*)(.*):\s(\d*)', status[3], re.M | re.I).group(2)))
+                # Writing
+                zbx.send('nginx[body_reading]',
+                         (re.match(r'(.*):\s(\d*)(.*):\s(\d*)(.*):\s(\d*)', status[3], re.M | re.I).group(4)))
+                # Waiting
+                zbx.send('nginx[keepalive_connections]',
+                         (re.match(r'(.*):\s(\d*)(.*):\s(\d*)(.*):\s(\d*)', status[3], re.M | re.I).group(6)))
         except requests.exceptions.RequestException as e:
             self.log.error('Get nginx status error: {0}'.format(e))
 
