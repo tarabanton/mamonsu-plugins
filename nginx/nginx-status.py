@@ -77,7 +77,7 @@ class Nginx(Plugin):
         url = '{0}'.format(self.plugin_config('url'))
         self.log.debug('Getting stub status. URL = ' + str(url))
         try:
-            basic_status = requests.get(url, auth=(self.plugin_config('username'), self.plugin_config('password')))
+            basic_status = requests.get(url, auth=(self.plugin_config('username'), self.plugin_config('password'))).text
             '''
             STUB STATUS nginx module output
             Active connections: 1
