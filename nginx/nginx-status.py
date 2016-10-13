@@ -10,7 +10,7 @@ file = /var/log/nginx/access.log
 ;Optional Basic Auth
 username =
 password =
-http_codes = {200, 301, 302, 304, 403, 404, 499, 500, 502, 503, 520}
+http_codes = [200, 301, 302, 304, 403, 404, 499, 500, 502, 503, 520]
 """
 
 import re
@@ -32,7 +32,7 @@ class Nginx(Plugin):
         'file': '/var/log/nginx/access.log',
         'username': str(None),
         'password': str(None),
-        'http_codes': '{200, 301, 302, 304, 403, 404, 499, 500, 502, 503, 520}'
+        'http_codes': '[200, 301, 302, 304, 403, 404, 499, 500, 502, 503, 520]'
     }
 
     Items = [
@@ -116,7 +116,7 @@ class Nginx(Plugin):
         try:
             with open(self.plugin_config('file'), 'r') as logfile:
                 # Codes to always initialize
-                nginx_http_codes = self.plugin_config('http_codes')
+                nginx_http_codes = eval(self.plugin_config('http_codes'))
                 # Declare datetime
                 d = datetime.datetime.now() - datetime.timedelta(minutes=1)
                 minute = int(time.mktime(d.timetuple()) / 60) * 60
