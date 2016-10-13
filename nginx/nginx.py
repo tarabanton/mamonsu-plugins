@@ -87,8 +87,8 @@ class Nginx(Plugin):
             '''
             self.log.debug('Got basic info')
             self.log.debug(basic_status)
-            status = basic_status.split('\n')
-            if len(status)>1:
+            status = str(basic_status).split('\n')
+            if len(status) > 1:
                 # Active connections
                 zbx.send('nginx[active_connections]',
                          (re.match(r'(.*):\s(\d*)', status[0], re.M | re.I).group(2)))
