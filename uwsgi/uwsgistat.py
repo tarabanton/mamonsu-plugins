@@ -78,7 +78,7 @@ class Uwsgistat(Plugin):
                     #result['avg_requests'] = result['total_requests']/result['total_workers']
                     #result['avg_exceptions'] = result['total_requests']/result['total_workers']
                     #Converting microseconds to seconds
-                    result['avg_rt'] = result['avg_rt']/result['total_workers']/1000000
+                    result['avg_rt'] = result['avg_rt']/result['total_workers']*0.000001
                     result['workers_used'] = (result['running_workers']/result['total_workers'])*100
 
                 self.log.debug('Got data for {}: {}'.format(socket_name, result))
