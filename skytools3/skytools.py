@@ -19,18 +19,19 @@ class Skytools(Plugin):
         data = {}
         consumers = []
         node_processes = []
+        skytools_processes = set([])
 
         self.log.debug('Fetching queues list')
         for queue in Pooler.query('SELECT queue_name FROM pgq.get_queue_info()'):
             node_type = Pooler.query('SELECT node_type FROM pgq_node.get_node_info(\'{0}\')'.format(queue[0]))[0]
+            # Must be on every node
+            skytools_processes.add('londiste')
             if 'root' in node_type:
-                skytools_processes = ['pgqd', 'londiste']
-                node_processes.append({'{#PROCESS}': 'pgqd'})
-                node_processes.append({'{#PROCESS}': 'londiste'})
-            else:
-                skytools_processes = ['londiste']
-                node_processes.append({'{#PROCESS}': 'londiste'})
+                skytools_processes.add('pgqd')
             self.log.debug('Node is {0} for queue {1}'.format(node_type, queue[0]))
+
+        for node_process in skytools_processes:
+            node_processes.append({'{#PROCESS}': node_process})
         data['skytools.proc.discovery[]'] = {'data': node_processes}
 
         self.log.debug('Requesting current list of processes')
