@@ -57,12 +57,12 @@ class Gdnsd(Plugin):
         for state in self.State_Types:
             if not data.get('gdnsd.services[{}]'.format(state)):
                 data['gdnsd.services[{}]'.format(state)] = 0
-                data['gdnsd.services[{}.list]'.format(state)] = ""
+                data['gdnsd.services[{},list]'.format(state)] = ''
 
         for service in status['services']:
             data['gdnsd.services[total]'] += 1
             data['gdnsd.services[{}]'.format(str(service['state']).lower())] += 1
-            data['gdnsd.services[{}.list]'.format(str(service['state']).lower())] += str(service['service']) + '; '
+            data['gdnsd.services[{},list]'.format(str(service['state']).lower())] += str(service['service']) + '; '
 
         self.log.debug('Got node status data: {0}'.format(data))
 
