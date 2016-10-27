@@ -13,6 +13,7 @@ class Skytools(Plugin):
 
     DEFAULT_CONFIG = {
         'enabled': str(False)
+        'database': str(None)
     }
 
     def run(self, zbx):
@@ -20,10 +21,11 @@ class Skytools(Plugin):
         consumers = []
         node_processes = []
         skytools_processes = set([])
+        skytools_db = self.plugin_config('database')
 
         self.log.debug('Fetching queues list')
-        for queue in Pooler.query('SELECT queue_name FROM pgq.get_queue_info()'):
-            node_type = Pooler.query('SELECT node_type FROM pgq_node.get_node_info(\'{0}\')'.format(queue[0]))[0]
+        for queue in Pooler.query('SELECT queue_name FROM pgq.get_queue_info()',db=skytools_db):
+            node_type = Pooler.query('SELECT node_type FROM pgq_node.get_node_info(\'{0}\')'.format(queue[0]),db=skytools_db)[0]
             # Must be on every node
             skytools_processes.add('londiste')
             if 'root' in node_type:
@@ -54,7 +56,7 @@ class Skytools(Plugin):
         [u'queue', u'subscriber', datetime.timedelta(0, 18, 44107), datetime.timedelta(0, 17, 806266), 506718, None, None, 0]
         '''
         self.log.debug('Fetching consumers list')
-        for consumer in Pooler.query('SELECT * FROM pgq.get_consumer_info()'):
+        for consumer in Pooler.query('SELECT * FROM pgq.get_consumer_info()',db=skytools_db):
             if not consumer[1].startswith('.'):
                 self.log.debug('Got Data - Queue: {0} | Consumer: {1} | Lag: {2} | Last seen: {3}'.format(consumer[0], consumer[1], consumer[2], consumer[3]))
                 consumers.append({'{#QUEUE}': consumer[0],'{#CONSUMER}': consumer[1]})
