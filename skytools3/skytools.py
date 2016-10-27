@@ -12,7 +12,7 @@ from mamonsu.plugins.pgsql.pool import Pooler
 class Skytools(Plugin):
 
     DEFAULT_CONFIG = {
-        'enabled': str(False)
+        'enabled': str(False),
         'database': str(None)
     }
 
