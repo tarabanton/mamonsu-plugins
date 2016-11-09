@@ -58,7 +58,9 @@ class Skytools(Plugin):
         self.log.debug('Fetching consumers list')
         for consumer in Pooler.query('SELECT * FROM pgq.get_consumer_info()',db=skytools_db):
             if not consumer[1].startswith('.'):
-                self.log.debug('Got Data - Queue: {0} | Consumer: {1} | Lag: {2} | Last seen: {3}'.format(consumer[0], consumer[1], consumer[2], consumer[3]))
+                self.log.debug('Got Data - Queue: {0} | Consumer: {1} | Lag: {2} | Last seen: {3}'.format(
+                                consumer[0], consumer[1], consumer[2], consumer[3])
+                )
                 consumers.append({'{#QUEUE}': consumer[0],'{#CONSUMER}': consumer[1]})
                 data['skytools.consumer.lag[{0},{1}]'.format(consumer[0], consumer[1])] = consumer[2].total_seconds()
                 data['skytools.consumer.last_seen[{0},{1}]'.format(consumer[0], consumer[1])] = consumer[3].total_seconds()
