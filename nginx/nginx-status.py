@@ -120,7 +120,7 @@ class Nginx(Plugin):
         try:
             with open(self.plugin_config('file'), 'r') as logfile:
                 # Codes to always initialize
-                nginx_http_codes = eval(self.plugin_config('http_codes'))
+                nginx_http_codes = self.plugin_config('http_codes', as_json=True)
                 # Declare datetime
                 d = datetime.datetime.now() - datetime.timedelta(minutes=1)
                 minute = int(time.mktime(d.timetuple()) / 60) * 60
