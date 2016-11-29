@@ -59,7 +59,7 @@ class RabbitMQ(Plugin):
         data = self.merge_dicts(check, data_node, data_queue)
         for item in data:
             # Remove quotes if value is enclosed in them
-            if data[item].startswith('"') and data[item].endswith('"'):
+            if isinstance(data[item], basestring) and data[item].startswith('"') and data[item].endswith('"'):
                 data[item] = data[item][1:-1]
             zbx.send(item, zbx.json(data[item]))
 
