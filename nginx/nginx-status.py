@@ -12,6 +12,7 @@ username =
 password =
 http_codes = [200, 301, 302, 304, 403, 404, 499, 500, 502, 503, 520]
 """
+#import sys, os
 
 import re
 import datetime
@@ -19,6 +20,7 @@ import time
 import os.path
 import requests
 import logging
+
 try:
     import urllib.request as urllib2
 except ImportError:
@@ -151,20 +153,32 @@ class Nginx(Plugin):
 
                 self.log.debug('Parsing log file')
                 for line in logfile:
-                    if d in line:
+                    #line = '10.11.22.33 - - [30/Nov/2016:09:47:49 +0000] "GET /path/file/name?param=value1&param2=value2&somevalue=with%20escape%20%2F%2054&os=Windows%20%2F%207 HTTP/1.1" 302 889 "http://example.com/referrer?param=value" "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36"'
+                    #regex = '([(\d+\.)]+) - [-\w]+ \[(\d+)\/(\w+)\/(\d+):(\d+):(\d+):(\d+) ([+-]\d+)\] "(.*?)" (\d+) (\d+) "(.*?)" "(.*?)"'
+                    regex = '([(\d+\.)]+) - [-\w]+ \[([\d\w\/]+):(\d+:\d+):(\d+) ([+-]\d+)\] "(.*?)" (\d+) (\d+) "(.*?)" "(.*?)"'
+                    log_line = re.match(regex, line)
+
+                    if log_line is None:
+                        self.log.debug('Line not matching regexp: \'{}\''.format(line))
+                        continue
+
+                    if d in '{}:{}'.format(log_line.group(2),log_line.group(3)):
                         total_rps += 1
-                        sec = int(re.match('(.*):(\d+):(\d+):(\d+)\s', line).group(4))
-                        code = int(re.match(r'(.*)"\s(\d*)\s', line).group(2))
+                        sec = int(log_line.group(4))
+                        code = int(log_line.group(7))
                         if res_code.get(code):
                             res_code[code] += 1
                         else:
                             res_code[code] = 1
                         rps[sec] += 1
 
+                    new_seek = int(logfile.tell())
+
             if total_rps != 0:
                 f = open(seek_file, 'w')
                 f.write(str(new_seek))
                 f.close()
+                self.log.debug('Processing ended at line {}'.format(new_seek))
             else:
                 self.log.debug('Zero records processed')
 
@@ -181,6 +195,7 @@ class Nginx(Plugin):
                 zbx.send('nginx[{0}]'.format(t), res_code[t])
         except Exception as e:
             self.log.error('Getting access log info error: {0}'.format(e))
+            #self.log.error('Error in {}. At file {} on line {}'.format(sys.exc_info()[0].__name__, os.path.basename(sys.exc_info()[2].tb_frame.f_code.co_filename), sys.exc_info()[2].tb_lineno))
 
     def items(self, template):
         result_items = []
