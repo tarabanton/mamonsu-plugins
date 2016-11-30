@@ -155,7 +155,7 @@ class Nginx(Plugin):
                 for line in logfile:
                     #line = '10.11.22.33 - - [30/Nov/2016:09:47:49 +0000] "GET /path/file/name?param=value1&param2=value2&somevalue=with%20escape%20%2F%2054&os=Windows%20%2F%207 HTTP/1.1" 302 889 "http://example.com/referrer?param=value" "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36"'
                     #regex = '([(\d+\.)]+) - [-\w]+ \[(\d+)\/(\w+)\/(\d+):(\d+):(\d+):(\d+) ([+-]\d+)\] "(.*?)" (\d+) (\d+) "(.*?)" "(.*?)"'
-                    regex = '([(\d+\.)]+) - [-\w]+ \[([\d\w\/]+):(\d+:\d+):(\d+) ([+-]\d+)\] "(.*?)" (\d+) (\d+) "(.*?)" "(.*?)"'
+                    regex = '([\w+\.:]+) - [-\w]+ \[([\d\w\/]+):(\d+:\d+):(\d+) ([+-]\d+)\] "(.*?)" (\d+) (\d+) "(.*?)" "(.*?)"'
                     log_line = re.match(regex, line)
 
                     if log_line is None:
