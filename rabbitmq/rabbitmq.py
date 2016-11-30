@@ -16,8 +16,8 @@ filters =
 """
 
 import socket
-import parser
 import requests
+import logging
 try:
     import json
 except:
