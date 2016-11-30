@@ -148,10 +148,10 @@ class Nginx(Plugin):
 
                 # if log file became larger - continue from last point, else start from 0
                 if os.path.getsize(self.plugin_config('file')) > seek:
-                    self.log.debug('Continuing old log file at ' + str(seek) + ' bytes')
+                    self.log.debug('Continuing old log file at {} bytes'.format(seek))
                     logfile.seek(seek)
 
-                self.log.debug('Parsing log file')
+                self.log.debug('Parsing log file {}'.format(self.plugin_config('file')))
                 for line in logfile:
                     #line = '10.11.22.33 - - [30/Nov/2016:09:47:49 +0000] "GET /path/file/name?param=value1&param2=value2&somevalue=with%20escape%20%2F%2054&os=Windows%20%2F%207 HTTP/1.1" 302 889 "http://example.com/referrer?param=value" "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36"'
                     #regex = '([(\d+\.)]+) - [-\w]+ \[(\d+)\/(\w+)\/(\d+):(\d+):(\d+):(\d+) ([+-]\d+)\] "(.*?)" (\d+) (\d+) "(.*?)" "(.*?)"'
@@ -171,14 +171,13 @@ class Nginx(Plugin):
                         else:
                             res_code[code] = 1
                         rps[sec] += 1
-
-                    new_seek = int(logfile.tell())
+                        new_seek = int(logfile.tell())
 
             if total_rps != 0:
                 f = open(seek_file, 'w')
                 f.write(str(new_seek))
                 f.close()
-                self.log.debug('Processing ended at line {}'.format(new_seek))
+                self.log.debug('Processing ended at {} bytes'.format(new_seek))
             else:
                 self.log.debug('Zero records processed')
 
