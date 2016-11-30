@@ -136,7 +136,8 @@ class Nginx(Plugin):
                     f = open(seek_file, 'r')
                     try:
                         new_seek = seek = int(f.readline())
-                    except:
+                    except Exception as e:
+                        self.log.error('Seekfile read error: {0}'.format(e))
                         new_seek = seek = os.path.getsize(self.plugin_config('file'))
                     finally:
                         f.close()

@@ -71,6 +71,9 @@ class RabbitMQ(Plugin):
         url = '{0}://{1}:{2}/api/{3}'.format(self.plugin_config('protocol'), self.plugin_config('host'), self.plugin_config('port'), path)
         self.log.debug('Issuing RabbitMQ API call to get data on ' + str(url))
         try:
+            requests_log = logging.getLogger("requests")
+            requests_log.addHandler(logging.NullHandler())
+            requests_log.propagate = False
             r = requests.get(url, auth=(self.plugin_config('username'), self.plugin_config('password')))
             data = r.text
             return json.loads(data)
@@ -133,7 +136,7 @@ class RabbitMQ(Plugin):
             try:
                 filters = json.loads(filters)
             except KeyError:
-                parser.error('Invalid filters object.')
+                self.log.error('Invalid filters object.')
         else:
             filters = [{}]
         if not isinstance(filters, (list, tuple)):
