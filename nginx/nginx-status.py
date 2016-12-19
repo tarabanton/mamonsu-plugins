@@ -80,12 +80,19 @@ class Nginx(Plugin):
         url = '{0}'.format(self.plugin_config('url'))
         self.log.debug('Getting stub status. URL = ' + str(url))
         try:
+            # Override requests logger settings
             requests_log = logging.getLogger("requests")
             requests_log.addHandler(logging.NullHandler())
             requests_log.propagate = False
-            basic_status = requests.get(url, auth=(self.plugin_config('username'), self.plugin_config('password'))).text
+            # We may have auth
+            if self.plugin_config('username') or self.plugin_config('password'):
+                basic_status = requests.get(url,
+                    auth=(self.plugin_config('username'), self.plugin_config('password'))
+                ).text
+            else:
+                basic_status = requests.get(url).text
+            # STUB STATUS nginx module output
             '''
-            STUB STATUS nginx module output
             Active connections: 1
             server accepts handled requests
             2101898 2101898 1748083
@@ -196,26 +203,26 @@ class Nginx(Plugin):
             self.log.error('Getting access log info error: {0}'.format(e))
             #self.log.error('Error in {}. At file {} on line {}'.format(sys.exc_info()[0].__name__, os.path.basename(sys.exc_info()[2].tb_frame.f_code.co_filename), sys.exc_info()[2].tb_lineno))
 
-    def items(self, template):
-        result_items = []
-        for source_item in self.Items:
-            result_items.append({
-                'name': '{0}'.format(source_item[1]),
-                'key': 'nginx[{0}]'.format(source_item[0]),
-                'type': source_item[3],
-                'param': '{0}'.format(source_item[4])
-            })
-        return template.item(result_items)
-
-    def graphs(self, template):
-        result_graphs = []
-        for source_graph in self.Graphs:
-            items = []
-            for metric in source_graph[1]:
-                for source_item in self.Items:
-                    if source_item[0] == metric:
-                        items.append({'key': 'nginx[{0}]'.format(source_item[0]), 'color': source_item[2]})
-            result_graphs.append(
-                {'name': source_graph[0], 'height': 400, 'type': 1, 'items': items}
-            )
-        return template.graph(result_graphs)
+    # def items(self, template):
+    #     result_items = []
+    #     for source_item in self.Items:
+    #         result_items.append({
+    #             'name': '{0}'.format(source_item[1]),
+    #             'key': 'nginx[{0}]'.format(source_item[0]),
+    #             'type': source_item[3],
+    #             'param': '{0}'.format(source_item[4])
+    #         })
+    #     return template.item(result_items)
+    #
+    # def graphs(self, template):
+    #     result_graphs = []
+    #     for source_graph in self.Graphs:
+    #         items = []
+    #         for metric in source_graph[1]:
+    #             for source_item in self.Items:
+    #                 if source_item[0] == metric:
+    #                     items.append({'key': 'nginx[{0}]'.format(source_item[0]), 'color': source_item[2]})
+    #         result_graphs.append(
+    #             {'name': source_graph[0], 'height': 400, 'type': 1, 'items': items}
+    #         )
+    #     return template.graph(result_graphs)
